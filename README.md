@@ -1,164 +1,144 @@
-# 📚 Little Biblio
+# Little Biblio — Physical Collection Management Platform
 
-> Sistema simplificado para gestão de coleções físicas de livros.
+### A Web Platform for Organizing Books and Managing Loans
 
-Este protótipo é um Mínimo Viável Produto (MVP) focado na validação da lógica de acervo e empréstimos. Para acelerar a prova de valor, foram adotadas as seguintes definições de escopo:
-- Acesso Aberto (Full Admin): Não há módulos de login ou cadastro. Todo usuário possui permissões totais de administrador, podendo gerenciar livros, membros e transações.
-- Ambiente Único: O sistema é single-tenant, ou seja, não há separação entre diferentes bibliotecas. Todos os dados pertencem a um único contexto compartilhado.
-- Foco Funcional: Itens como monetização e segurança avançada foram omitidos para priorizar a experiência de rastreabilidade e usabilidade do core do produto.
+## Overview
 
+**Little Biblio** is a web application designed to simplify the management of physical book collections. It helps users catalog books, track loans and returns, and maintain a clear history of their collection, reducing lost books and the friction of manual tracking.
 
+The project focuses on validating the core domain and user experience through a functional MVP, developed with AI-assisted engineering practices.
 
-![alt text](image.png)
+![home app](image.png)
 
-## 🛠 Stack Tecnológica
+---
 
-- **Front-End:** ReactJS (Interface reativa e intuitiva)
-- **Back-End:** Python com FastAPI (Performance e tipagem rápida)
-- **Banco de Dados:** PostgreSQL (Persistência relacional robusta)
+## 1. The Problem
 
-## 📂 Estrutura do Repositório
+Managing physical book collections often relies on spreadsheets, handwritten notes, or scattered messages. This leads to:
 
-- `/src/backend`: API REST, modelos do banco e lógica de negócio.
-- `/src/frontend`: Componentes de UI e integração com a API.
-- `/docs`: Documentação técnica e requisitos.
-- `diagram-classes.md`: Representação visual da arquitetura do sistema.
+- **Lost books:** Lack of reliable records makes it difficult to track who borrowed each book and when it should be returned.
+- **Manual errors:** Generic spreadsheets cannot enforce business rules, such as preventing a book from being loaned to multiple people simultaneously.
+- **Complex tools:** Traditional library systems can be too cumbersome for personal collections and small reading communities.
 
-## 🏗 Modelo de Classes (Projeto)
+The challenge is to provide a simple, reliable way to organize books and manage their lending lifecycle.
 
-Abaixo está a estrutura planejada para suportar as Histórias de Usuário (HUs):
+## 2. The Solution
+
+Little Biblio provides an intuitive platform for cataloging books and managing loans through a consistent workflow.
+
+Key features include:
+
+- **Book Catalog:** Register and organize books with titles, authors, ISBNs, and cover images.
+- **Loan Management:** Track borrowers, loan dates, expected return dates, and completed returns.
+- **Collection Search:** Find books by title, author, ISBN, or availability status.
+- **Loan History:** Maintain visibility into borrowed books and their transaction history.
+
+The MVP prioritizes core collection management and loan tracking, with a simplified administrative model to validate the product before introducing more complex multi-user features.
+
+---
+
+## 3. My Role: Technical Leadership and Software Engineering
+
+As the technical lead, I guided the team throughout the project, focusing on scope definition, software architecture, and AI-assisted development.
+
+### Technical Leadership and Scope Management
+
+- Defined the MVP scope, prioritizing core collection management and loan workflows over nonessential features.
+- Refined user stories and created a requirements traceability matrix to ensure coverage of key workflows.
+
+### AI-Assisted Development
+
+- Used LLMs to accelerate React component development, Pydantic schema creation, and synthetic test data generation.
+- Leveraged AI to identify edge cases in loan management, including overdue returns, concurrent transactions, and dynamic filtering.
+
+### Software Architecture and Domain Modeling
+
+- Designed a layered architecture inspired by Clean Architecture and aligned with SOLID and DRY principles.
+- Modeled relational entities in PostgreSQL and defined the object-oriented domain class diagram.
+
+---
+
+## 4. Software Architecture and Domain Model
+
+The system separates domain logic, application services, and REST API endpoints to improve maintainability and support future evolution.
+
+### Domain Class Diagram
 
 ```mermaid
 classDiagram
-    class Pessoa {
+    class Person {
         <<abstract>>
         #UUID id
-        #String nome
+        #String name
         #String email
-        #String telefone
-        #String login
-        #String senha
-        +autenticar(login, senha) boolean
+        #String phone
+        #String username
+        #String password
+        +authenticate(username, password) boolean
     }
-    class Dono {
-        +cadastrarLivro(Livro) void
-        +editarLivro(Livro) void
-        +gerenciarMembros() void
+    class Owner {
+        +addBook(Book) void
+        +editBook(Book) void
+        +manageMembers() void
     }
-    class Membro {
-        +String statusMembro
-        +solicitarEmprestimo() void
-        +consultarAcervo() List
+    class Member {
+        +String memberStatus
+        +requestLoan() void
+        +browseCollection() List
     }
-    class Livro {
+    class Book {
         +String isbn
-        +String titulo
-        +String autor
-        +String capaURL
+        +String title
+        +String author
+        +String coverURL
         +String status
-        +atualizarStatus(novoStatus) void
+        +updateStatus(newStatus) void
     }
-    class Emprestimo {
-        +DateTime dataEmprestimo
-        +DateTime dataDevolucaoPrevista
-        +DateTime dataDevolucaoReal
-        +processarEmprestimo(Livro, Membro) void
-        +finalizarDevolucao() void
+    class Loan {
+        +DateTime loanDate
+        +DateTime dueDate
+        +DateTime returnDate
+        +processLoan(Book, Member) void
+        +completeReturn() void
     }
 
-    Pessoa <|-- Dono
-    Pessoa <|-- Membro
-    Dono "1" -- "*" Livro : possui
-    Membro "1" -- "*" Emprestimo : realiza
-    Emprestimo "*" -- "1" Livro : contem
-
+    Person <|-- Owner
+    Person <|-- Member
+    Owner "1" -- "*" Book : owns
+    Member "1" -- "*" Loan : borrows
+    Loan "*" -- "1" Book : includes
 ```
 
-## 📋 Rastreabilidade de Requisitos
+### Requirements Traceability
 
-| HU       | História de Usuário                        | Classe(s)  | Método de Implementação              |
-| -------- | ------------------------------------------ | ---------- | ------------------------------------ |
-| **HU01** | Adicionar novo livro ao acervo             | Dono       | `cadastrarLivro(Livro)`              |
-| **HU02** | Visualizar lista completa de livros        | Membro     | `consultarAcervo()`                  |
-| **HU03** | Registrar empréstimo de um livro           | Emprestimo | `processarEmprestimo(Livro, Membro)` |
-| **HU04** | Registrar devolução de um livro            | Emprestimo | `finalizarDevolucao()`               |
-| **HU05** | "Buscar livros por título, autor ou ISBN " | Membro     | `consultarAcervo()`                  |
-| **HU06** | Visualizar livros emprestados e contatos   | Dono       | `visualizarRelatorioEmprestados()`   |
-| **HU07** | Gerenciar lista de membros                 | Dono       | `gerenciarMembros()`                 |
-| **HU08** | Editar detalhes de um livro                | Dono       | `editarLivro(Livro)`                 |
-| **HU09** | Filtrar lista por status                   | Membro     | `consultarAcervo()`                  |
+| ID | User Story | Responsible Entity | Domain Operation |
+|---|---|---|---|
+| HU01 | Add a book to the catalog | `Owner` | `addBook(Book)` |
+| HU02 | Browse the full collection | `Member` | `browseCollection()` |
+| HU03 | Register a loan for an available book | `Loan` | `processLoan(Book, Member)` |
+| HU04 | Register a return and update inventory | `Loan` | `completeReturn()` |
+| HU05 | Search books by author, ISBN, or title | `Member` | `browseCollection()` |
+| HU06 | View books currently loaned out | `Owner` | `viewLoanReport()` |
+| HU07 | Manage members and contact information | `Owner` | `manageMembers()` |
+| HU08 | Update book metadata | `Owner` | `editBook(Book)` |
+| HU09 | Filter books by availability status | `Member` | `browseCollection()` |
 
+---
 
-## 🧪 Testes e Boas Práticas de Engenharia de Software
+## 5. Technology Stack
 
-Este projeto foi desenvolvido seguindo princípios fundamentais da Engenharia de Software:
+| Component | Technology | Responsibility |
+|---|---|---|
+| Frontend | React.js | User interface and interactive catalog |
+| Backend | FastAPI (Python) | REST API and application logic |
+| Database | PostgreSQL | Relational data persistence |
+| Containerization | Docker & Docker Compose | Consistent development and deployment environments |
 
-- **Testes Automatizados:** Utilizamos testes unitários e de integração para garantir a confiabilidade das principais funcionalidades do sistema, tanto no backend (FastAPI) quanto no frontend (React). Os testes cobrem cenários de API, modelos e componentes, favorecendo a manutenção e evolução segura do código.
-- **Arquitetura Limpa:** O backend foi desenhado com inspiração na Clean Architecture, promovendo separação clara entre camadas de domínio, aplicação, infraestrutura e interfaces. Isso facilita a testabilidade, reuso e independência de frameworks.
-- **Design em Camadas:** O sistema adota conceitos de arquitetura em camadas, separando responsabilidades entre modelos, serviços, roteadores e schemas. Essa abordagem favorece a organização, escalabilidade e clareza do código.
-- **Separação de Classes:** As entidades principais (Livro, Membro, Emprestimo) são representadas por classes bem definidas, cada uma com suas responsabilidades e métodos, conforme boas práticas de orientação a objetos.
-- **Documentação e Rastreabilidade:** O projeto inclui documentação detalhada, diagramas de classes e rastreabilidade de requisitos, facilitando o entendimento e acompanhamento do desenvolvimento.
-- **Princípios SOLID e DRY:** Buscamos aplicar princípios como SOLID (responsabilidade única, aberto/fechado, etc.) e DRY (não se repita) para garantir um código limpo, modular e de fácil manutenção.
+### Engineering Practices
 
-Essas práticas foram adotadas para favorecer a qualidade, robustez e evolução do projeto, alinhando-se aos objetivos da disciplina de Engenharia de Software.
-
-## 🚀 Como Rodar?
-
-Para executar o projeto localmente, siga os passos abaixo:
-
-## 1. Banco de Dados (PostgreSQL)
-
-- Certifique-se de ter o PostgreSQL & Docker instalado e rodando na sua máquina.
-- Crie o banco de dados conforme especificado no backend.
-
-## 2. Backend (FastAPI)
-
-- Acesse a pasta do backend:
-    ```bash
-    cd backend
-    ```
-- Instale as dependências:
-    ```bash
-    # Crie e ative o ambiente virtual
-    python -m venv venv
-    venv\Scripts\activate  # No Windows
-    source venv/bin/activate  # No Linux/Mac
-    
-    pip install -r requirements.txt
-    ```
-
-- Execute o Docker Compose para subir o PostgreSQL:
-    ```bash
-    docker compose up -d
-    ```
-    
-- Execute a criação do banco (se necessário):
-    ```bash
-    python create_db.py
-    ```
-- Inicie o servidor FastAPI:
-    ```bash
-    python start.py
-    ```
-
-## 3. Frontend (React)
-
-- Acesse a pasta do frontend:
-    ```bash
-    cd frontend
-    ```
-- Instale as dependências:
-    ```bash
-    npm install
-    ```
-- Inicie o servidor de desenvolvimento:
-    ```bash
-    npm run dev
-    ```
-
-## 4. Acessando o Sistema
-
-- O frontend estará disponível em `http://localhost:8081` (ou porta configurada).
-- O backend estará disponível em `http://localhost:8080` (ou porta configurada).
-
-Pronto! Agora você pode acessar e utilizar o sistema Little Biblio localmente.
+- **Clean Architecture & SOLID:** Separation of business rules from delivery frameworks to support maintainability and independent evolution.
+- **Automated Testing:** Unit tests for critical loan operations and book status transitions.
+- **Modular Structure:**
+  - `/src/backend`: REST endpoints, ORM mappings, business services, and schemas.
+  - `/src/frontend`: UI components, hooks, and interactive tables.
+  - `/docs`: Technical specifications and project documentation.
